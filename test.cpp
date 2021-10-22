@@ -3,8 +3,10 @@
 #include <fmt/core.h>
 
 int main(int argc, char *argv[]) {
-  std::string t1(argv[1]);
-  std::string t2(argv[2]);
+  //std::string t1(argv[1]);
+  //std::string t2(argv[2]);
+	std::string t1 = "int";
+	std::string t2 = "float";
 
   std::string template_function =
 "#include <iostream>\n"
@@ -22,7 +24,8 @@ int main(int argc, char *argv[]) {
   ss << fmt::format("template<> void foo<{0}, {1}>({0} *a, {1} *b);", t1, t2) << std::endl;
 
   // wrapper function:
-  ss << fmt::format("extern \"C\" foo_wrapper({0} *a, {1} *b) {", t1, t2) << std::endl;
+  ss << fmt::format("extern \"C\" foowrapper({0} *a, {1} *b)", t1, t2) << std::endl;
+  ss << "{" << std::endl;
   ss << fmt::format("    foo<{0}, {1}>(a, b);", t1, t2) << std::endl;
   ss << "}" << std::endl;
 
