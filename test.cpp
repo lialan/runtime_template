@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <fmt/core.h>
 
 void gen_source_code(std::string t1, std::string t2, std::string file) {
@@ -33,7 +34,15 @@ void gen_source_code(std::string t1, std::string t2, std::string file) {
 }
 
 void gen_dylib(std::string infile, std::string outfile) {
-  std::system(fmt::format("clang++12 -shared -fPIC -o {0} {1}", infile, outfile));
+  std::system(fmt::format("clang++12 -shared -fPIC -o {0} {1}", infile, outfile).c_str());
+}
+
+void load_dylib(std::string sofile) {
+
+}
+
+void call_dylib(std::string t1, std::string t2, std::string name) {
+
 }
 
 int main(int argc, char *argv[]) {
@@ -45,11 +54,11 @@ int main(int argc, char *argv[]) {
 
   gen_source_code(t1,t2, source_file);
 
-  gen_dylib(source_file, outfile);
+  gen_dylib(source_file, dylib_file);
 
-  load_dylib(outfile);
+  load_dylib(dylib_file);
 
-  call_dylib("int", "float");
+  call_dylib("int", "float", "foowrapper");
 
   return 0;
 }
