@@ -34,7 +34,7 @@ void gen_source_code(std::string t1, std::string t2, std::string file) {
 }
 
 void gen_dylib(std::string infile, std::string outfile) {
-  std::system(fmt::format("clang++12 -shared -fPIC -o {0} {1}", infile, outfile).c_str());
+  std::system(fmt::format("clang++-12 -shared -fPIC -o {0} {1}", outfile, infile).c_str());
 }
 
 void load_dylib(std::string sofile) {
