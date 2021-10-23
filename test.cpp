@@ -4,8 +4,10 @@
 #include <fmt/core.h>
 
 #include <dlfcn.h>
+#include <vector>
 
-void gen_source_code(std::string t1, std::string t2, std::string file) {
+
+static void gen_source_code(std::string t1, std::string t2, std::string file) {
   std::cout << "Generating library function source code:" << std::endl;
 
   std::ifstream header_file;
@@ -27,12 +29,12 @@ void gen_source_code(std::string t1, std::string t2, std::string file) {
   out.close();
 }
 
-void gen_dylib(std::string infile, std::string outfile) {
+static void gen_dylib(std::string infile, std::string outfile) {
   std::cout << "compiling to library." << std::endl;
   std::system(fmt::format("clang++-12 -shared -fPIC -o {0} {1}", outfile, infile).c_str());
 }
 
-void *load_dylib(std::string sofile) {
+static void *load_dylib(std::string sofile) {
   std::cout << "trying to load library." << std::endl;
   void *handle = dlopen(sofile.c_str(), RTLD_NOW);
   if (!handle) {
@@ -43,7 +45,22 @@ void *load_dylib(std::string sofile) {
   return handle;
 }
 
-void call_dylib(void* handle, std::string name) {
+// args are pointer to some types.
+void* specialize_template(std::vector<std::string> arg_types) {
+  std::string source_file = "/tmp/template.cc";
+  std::string dylib_file = "/tmp/templatelib.so";
+
+  gen_source_code(arg_types[0], arg_types[1], source_file);
+
+  gen_dylib(source_file, dylib_file);
+
+  return load_dylib(dylib_file);
+}
+
+// here args are of the type indicated in the template specialization parameters.
+// but we erased args type info because we do not know it until runtime.
+// this is for codegen.
+void call_dylib(void* handle, std::string name, char *args[]) {
   dlerror();
   using wrapper_t = void (*)(void*, void*);
   // find symbol entry:
@@ -56,26 +73,25 @@ void call_dylib(void* handle, std::string name) {
     abort();
   }
 
-  int a = 10;
-  float b = 20.0;
-
-  wrapper_ptr((void*)(&a), (void*)(&b));
+  wrapper_ptr((void*)(args[0]), (void*)(args[1]));
 }
+
 
 int main(int argc, char *argv[]) {
   std::string t1(argv[1]);
   std::string t2(argv[2]);
 
-  std::string source_file = "/tmp/template.cc";
-  std::string dylib_file = "/tmp/templatelib.so";
 
-  gen_source_code(t1,t2, source_file);
+  void* template_dylib = specialize_template({t1, t2});
 
-  gen_dylib(source_file, dylib_file);
+  int a = 10;
+  float b = 20.00;
 
-  void *dylib = load_dylib(dylib_file);
+  char* args[2]; // ugly but it shows the idea.
+  args[0] = reinterpret_cast<char*>(&a);
+  args[1] = reinterpret_cast<char*>(&b);
 
-  call_dylib(dylib, "foowrapper");
+  call_dylib(template_dylib, "foowrapper", args);
 
   return 0;
 }
