@@ -8,22 +8,13 @@
 void gen_source_code(std::string t1, std::string t2, std::string file) {
   std::cout << "Generating library function source code:" << std::endl;
 
-  std::string template_function =
-"#include <iostream>\n"
-"#include <typeinfo>\n\n"
-"template <typename T1, typename T2>\n"
-"void foo(T1 *a, T2 *b) { \n"
-"std::cout<< typeid(a).name() << std::endl;\n"
-"std::cout<< typeid(b).name() << std::endl;\n"
-"}\n";
+  std::ifstream header_file;
+  header_file.open("./header.inc");
 
   std::stringstream ss;
-  ss << template_function;
+  ss << header_file.rdbuf();
 
-  // specialize template
-  //ss << fmt::format("template<> void foo<{0}, {1}>({0} *a, {1} *b);", t1, t2) << std::endl;
-
-  // wrapper function:
+  // manually generate a wrapper function(number of arguments must match):
   ss << fmt::format("extern \"C\" void foowrapper({0} *a, {1} *b)", t1, t2) << std::endl;
   ss << "{" << std::endl;
   ss << fmt::format("    foo<{0}, {1}>(a, b);", t1, t2) << std::endl;
@@ -37,6 +28,7 @@ void gen_source_code(std::string t1, std::string t2, std::string file) {
 }
 
 void gen_dylib(std::string infile, std::string outfile) {
+  std::cout << "compiling to library." << std::endl;
   std::system(fmt::format("clang++-12 -shared -fPIC -o {0} {1}", outfile, infile).c_str());
 }
 

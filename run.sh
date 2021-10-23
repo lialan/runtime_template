@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 
-clang++-12 -g test.cpp -lfmt -ldl
+c++ -g test.cpp -lfmt -ldl -o template_test
+
 
